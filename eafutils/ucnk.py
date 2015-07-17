@@ -154,10 +154,14 @@ def to_split_phones(fon_word):
 
     E.g.: "chroust" -> "ch r ou s t"
 
+    NOTE: hmm, emm and ANY string containing non-word characters (acc. to
+    Unicode) or uppercase A-Z (anonymization codes) are returned is (they are
+    considered atomic units).
+
     """
     # only transcriptions which are all lowercase letters actually consist of
     # separable phones; other "words" should be returned as is
-    if re.match(r"[\WA-Z]", fon_word):
+    if re.search(r"[\WA-Z]", fon_word) or fon_word in ("hmm", "emm"):
         return fon_word
     else:
         # split fon_word and re-join it with spaces
