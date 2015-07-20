@@ -42,7 +42,6 @@ class OrtofonEaf(ET.ElementTree):
         self.ort = self._extract_annotations_in_tier("ortografický", True)
         self.fon = self._extract_annotations_in_tier("fonetický", True)
         self.time = self._extract_timestamps()
-        self._time_dict = None
 
     def ort_dict(self):
         if self._ort_dict:
@@ -108,7 +107,11 @@ class OrtofonEaf(ET.ElementTree):
         annot_type = ("REF_ANNOTATION" if (attrib == "fonetický") else
                       "ALIGNABLE_ANNOTATION")
         for tier in root.iter("TIER"):
-            if tier.attrib["LINGUISTIC_TYPE_REF"] == attrib:
+            # ignore tiers added by TransVer
+            if tier.attrib["LINGUISTIC_TYPE_REF"] == attrib and \
+               tier.attrib.get("ANNOTATOR") != "TransVer" and \
+               not tier.attrib.get("TIER_ID").startswith("JO") and \
+               not tier.attrib.get("TIER_ID").startswith("anom"):
                 speaker = tier.attrib["TIER_ID"].split()[0]
                 for annot in tier.iter(annot_type):
                     annot_text = annot.getchildren()[0].text
@@ -140,7 +143,7 @@ def random_anom():
 def kaldi_tokenize(annotation):
     # remove chars which are not relevant for kaldi transcript
     annotation = re.sub(r"[\?#\$\[\]\{\}\(\)=>\-\*\+_]", "", annotation)
-    annotation = re.sub("<[A-Z]{2} ", "", annotation)
+    annotation = re.sub("<[A-Z]+ ", "", annotation)
     # replace unknown words represented by digits with a random anonymization
     # sequence
     annotation = re.sub(r"\d+", random_anom(), annotation)
