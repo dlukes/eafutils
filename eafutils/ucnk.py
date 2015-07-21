@@ -11,6 +11,7 @@ import fnmatch
 import re
 import xml.etree.ElementTree as ET
 import random
+import unicodedata
 # from collections import defaultdict
 # from sys import stderr, argv, exit
 # from signal import signal, SIGPIPE, SIG_DFL
@@ -114,7 +115,7 @@ class OrtofonEaf(ET.ElementTree):
                not tier.attrib.get("TIER_ID").startswith("anom"):
                 speaker = tier.attrib["TIER_ID"].split()[0]
                 for annot in tier.iter(annot_type):
-                    annot_text = annot.getchildren()[0].text
+                    annot_text = self._normalize_graphemes(annot.getchildren()[0].text)
                     if get_attribs:
                         annot = annot.attrib
                         annot["ANNOTATION_VALUE"] = annot_text
@@ -134,6 +135,17 @@ class OrtofonEaf(ET.ElementTree):
         for time_slot in root.iter("TIME_SLOT"):
             timestamps.append(time_slot.attrib)
         return timestamps
+
+    def _normalize_graphemes(self, string):
+        string = unicodedata.normalize("NFKC", string)
+        string = re.sub("ɡ", "g", string)
+        string = re.sub("ľ", "ĺ", string)
+        string = re.sub("ɫ", "ł", string)
+        string = re.sub("ü", "y", string)
+        string = re.sub("γ", "ɣ", string)
+        string = re.sub("θ", "", string)
+        string = re.sub("[ǝә]", "ə", string)
+        return string
 
 
 def random_anom():
