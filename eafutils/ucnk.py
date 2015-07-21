@@ -153,12 +153,12 @@ def random_anom():
     return random.sample(ANOM, 1)[0]
 
 def kaldi_tokenize(annotation):
+    # replace unknown words represented by digits with a random anonymization
+    # sequence
+    annotation = re.sub(r"\(\d+\)", random_anom(), annotation)
     # remove chars which are not relevant for kaldi transcript
     annotation = re.sub(r"[\?#\$\[\]\{\}\(\)=>\-\*\+_]", "", annotation)
     annotation = re.sub("<[A-Z]+ ", "", annotation)
-    # replace unknown words represented by digits with a random anonymization
-    # sequence
-    annotation = re.sub(r"\d+", random_anom(), annotation)
     # and split on pipes and whitespace+ (+ strip before splitting to avoid
     # empty strings at extremities):
     return re.split(r"\||\s+", annotation.strip())
